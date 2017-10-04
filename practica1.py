@@ -1,0 +1,61 @@
+
+def ejercicio2(l):
+    res = [1] * len(l);
+    for i in range(1,len(l)):
+        value = 0;
+        for j in range(0, i):
+            if l[j] < l[i] and value < res[j]:
+                value = res[j];
+        res[i] += value;
+    return res;
+
+def ejercicio3(l):
+    return max(ejercicio2(l));
+
+def ejercicio4(l, optimizar="tiempo"):
+    if optimizar == "tiempo":
+        return ejercicio4time(l);
+    else:
+        return ejercicio4space(l);
+
+def ejercicio4time(l):
+    res = [1] * len(l);
+    p = [-1];
+
+    for i in range(1,len(l)):
+        index = -1;
+        value = 0;
+        for j in range(0, i):
+            if l[j] < l[i] and value < res[j]:
+                index = j;
+                value = res[j];
+        res[i] += value;
+        p.append(index);
+
+    prev = res.index(max(res));
+    a = [];
+    while(prev != -1):
+        a.append(l[prev]);
+        prev = p[prev];
+
+    a.reverse();
+    return a;
+
+def ejercicio4space(l):
+    res = ejercicio2(l);
+    quedan = max(res);
+    pos = res.index(quedan);
+    a = [];
+
+    while(quedan > 0):
+        a.append(l[pos]);
+        quedan -= 1;
+        for i in range(0, pos):
+            if l[i] < l[pos] and res[i] == quedan:
+                pos = i;
+
+    a.reverse();
+    return a;
+
+a = [210, 816, 357, 107, 889, 635, 733, 930, 842, 542];
+
