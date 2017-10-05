@@ -1,12 +1,11 @@
-
 def ejercicio2(l):
-    res = [1] * len(l);
-    for i in range(1,len(l)):
+    res = [];
+    for i in range(0,len(l)):
         value = 0;
         for j in range(0, i):
             if l[j] < l[i] and value < res[j]:
                 value = res[j];
-        res[i] += value;
+        res.append(value + 1);
     return res;
 
 def ejercicio3(l):
