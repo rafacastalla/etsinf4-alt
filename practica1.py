@@ -81,7 +81,7 @@ def menores(l):
                         men[a] = i;
                 else:
                     men[b] = i;
-    return men;
+    return len(men);
 
 a = [210, 816, 357, 107, 889, 635, 733, 930, 842, 542];
 
