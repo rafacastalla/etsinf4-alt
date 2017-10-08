@@ -18,17 +18,17 @@ def ejercicio4(l, optimizar="tiempo"):
         return ejercicio4space(l);
 
 def ejercicio4time(l):
-    res = [1] * len(l);
-    p = [-1];
+    res = [];
+    p =   [];
 
-    for i in range(1,len(l)):
+    for i in range(0,len(l)):
         index = -1;
         value = 0;
         for j in range(0, i):
             if l[j] < l[i] and value < res[j]:
                 index = j;
                 value = res[j];
-        res[i] += value;
+        res.append(value + 1);
         p.append(index);
 
     prev = res.index(max(res));
