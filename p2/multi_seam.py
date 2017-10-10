@@ -6,7 +6,6 @@
 
 from PIL import Image, ImageTk
 import tkinter
-import random
 import numpy
 import sys
 import time
@@ -17,7 +16,7 @@ def compute_gradient(grad,img):
     img  is a 2-dimensional grayscale image in a list of list format
     grad is the output represented in the same way
     path is None during the first iteration and contains the previous seam path afterwards
-    observe that the gradient is not computed for the first and last rows 
+    observe that the gradient is not computed for the first and last rows
     so that you do not have to use these first and last rows
     """
     width, height = len(grad[0]), len(grad)
@@ -44,10 +43,10 @@ def paint_seams(height,seam_paths,color_matrix,path_color=[0,0,0]):
             color_matrix[y][path[y]] = path_color
 
 def remove_seams(height,seam_paths, matrix):
-    """
-    COMPLETE
-    """
-    pass
+    for y in range(0, height):
+        points = sorted([p[y] for p in seam_paths], key=lambda i:-i)
+        for x in points:
+            matrix[y].pop(x)
 
 def dp_seam_carving_multi(grad,mat,N,pscore=0.8):
     """
@@ -71,9 +70,52 @@ def dp_seam_carving_multi(grad,mat,N,pscore=0.8):
     for y in range(1,height):
         mat[y][0]       = infty
         mat[y][width-1] = infty
-        # COMPLETE
+        for x in range(1,width-1):
+            mat[y][x] = min(mat[y-1][x-1], mat[y-1][x], mat[y-1][x+1])
+            mat[y][x] += grad[y][x]
+
     paths = []
-    # COMPLETE HERE
+    bestPath = None
+    used = set()
+
+    while len(paths) < N:
+        path = []
+        # Get first step
+        min_val = infty;
+        min_point = -1;
+        for x in range(1,width-1):
+            if (height-1,x) not in used and mat[-1][x] < min_val:
+                min_val = mat[-1][x]
+                min_point = x
+
+        # Write bestPath or stop condition
+        if len(paths) == 0:
+            bestPath = min_val
+        elif min_val * pscore > bestPath:
+            break
+
+        path = [min_point]
+        used.add((height-1,min_point))
+
+        # Compute whole path
+        for y in range(height-2,-1,-1):
+            min_point = -1
+            min_val = infty
+            for x in [i + path[-1] for i in [-1, 0, 1]]:
+                if mat[y][x] < min_val:
+                    min_point = x
+                    min_val = mat[y][x]
+            if (y,min_point) not in used:
+                used.add((y,min_point))
+                path.append(min_point)
+            else:
+                break
+
+        # Add to paths
+        if len(path) == height:
+            path.reverse()
+            paths.append(path)
+
     return paths
 
 def matrix_to_color_image(color_matrix):
@@ -81,7 +123,7 @@ def matrix_to_color_image(color_matrix):
     You don't need to modify this function
     """
     return Image.fromarray(numpy.array(color_matrix, dtype=numpy.uint8))
-    
+
 def save_matrix_as_color_image(color_matrix,filename):
     """
     You don't need to modify this function
@@ -139,26 +181,26 @@ class MyTkApp():
       t0 = time.time()
 
       color_img = self.color_img
-      removed_colums = self.removed_colums
+#      removed_colums = self.removed_colums
       width,height = color_img.size
-      # convert the color image to a numpy array    
+      # convert the color image to a numpy array
       color_numpy = numpy.array(color_img.getdata()).reshape(height, width,3) # 3 for RGB
       # convert the numpy array into a list of lists, we will use this
       # list of lists (a list of rows) as our data structure during the
       # computations:
       color_matrix = color_numpy.tolist()
-      
+
       # make the same for the grayscale version of the image:
       grayscale_img = color_img.convert("F")
       grayscale_numpy = numpy.array(grayscale_img.getdata()).reshape(height,width)
       grayscale_matrix = grayscale_numpy.tolist()
-      
+
       # let's construct the gradient matrix as a list of lists:
       gradient_matrix = [[0.0 for x in range(width)] for y in range(height)]
       # let's construct the dynamic programming matrix as a list of lists:
       infty = 1e99
       dp_matrix = [[infty for x in range(width)] for y in range(height)]
-      
+
       self.showImg(color_img) # show image
       while self.removed_colums>0:
         # compute the gradient
@@ -199,7 +241,7 @@ if __name__ == "__main__":
         print('\n%s image_file {num_column|%%} number_seams\n'\
               % (sys.argv[0],))
         sys.exit()
-        
+
     file_name = sys.argv[1]
     ncolumns = sys.argv[2]
     N = int(sys.argv[3])
