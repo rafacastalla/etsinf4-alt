@@ -119,9 +119,9 @@ def dp_seam_carving(grad,mat):
     path = [min_point]
     for y in range(height-2, -1, -1):
         min_point = -1
-        min_val = mat[y+1][path[-1]]
+        min_val = infty
         for x in [i + path[-1] for i in [-1, 0, 1]]:
-            if mat[y][x] <= min_val:
+            if mat[y][x] < min_val:
                 min_point = x
                 min_val = mat[y][x]
         path.append(min_point)
