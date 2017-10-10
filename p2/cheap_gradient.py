@@ -12,12 +12,12 @@ import time
 import math
 
 def sobelOperator(img, x, y):
-    gx = -img[y-1][x-1]-2*img[y][x-1]-img[y+1][x-1]+img[y-1][x+1]+2*img[y][x+1]+img[y+1][x+1];
-    gy =  img[y-1][x-1]+2*img[y-1][x]+img[y-1][x+1]-img[y+1][x-1]-2*img[y+1][x]-img[y+1][x+1];
-    return math.sqrt(gx*gx+gy*gy);
+    gx = -img[y-1][x-1]-2*img[y][x-1]-img[y+1][x-1]+img[y-1][x+1]+2*img[y][x+1]+img[y+1][x+1]
+    gy =  img[y-1][x-1]+2*img[y-1][x]+img[y-1][x+1]-img[y+1][x-1]-2*img[y+1][x]-img[y+1][x+1]
+    return math.sqrt(gx*gx+gy*gy)
 
 def simpleGradient(img, x, y):
-    return abs(img[y][x-1] - img[y][x+1]);
+    return abs(img[y][x-1] - img[y][x+1])
 
 
 def compute_gradient(grad,img,path):
@@ -25,44 +25,51 @@ def compute_gradient(grad,img,path):
     img  is a 2-dimensional grayscale image in a list of list format
     grad is the output represented in the same way
     path is None during the first iteration and contains the previous seam path afterwards
-    observe that the gradient is not computed for the first and last rows
-    so that you do not have to use these first and last rows
+    observe that the gradient is not computed for the first and last cols
+    so that you do not have to use these first and last cols
     """
     width, height = len(grad[0]), len(grad)
 
     if path:
-        prev = None;
-        for y,x in enumerate(path): # The other rows: Sobel operator
-            if y == 0 or y == height-1:
+        prev = None
+        for y,x in enumerate(path):
+            if y == 0 or y == height-1: # only check the left and right cells
                 if x < width - 1:
-                    grad[y][x] = simpleGradient(img, x, y);
-                grad[y][x-1] = simpleGradient(img, x-1, y);
-            else:
+                    grad[y][x] = simpleGradient(img, x, y)
+                if x > 1:
+                    grad[y][x-1] = simpleGradient(img, x-1, y)
+                if y == height - 1:
+                    if x - prev == 1 and x < width - 1:
+                        grad[y-1][x] = sobelOperator(img, x, y-1)
+                    elif x - prev == -1 and x - 1 > 0:
+                        grad[y-1][x-1] = sobelOperator(img, x-1, y-1);
+            else: # rest of rows, sobelOperator checking not in first row or first/last cols
                 if x < width - 1:
-                    grad[y][x] = sobelOperator(img, x, y);
-                grad[y][x-1] = sobelOperator(img, x-1, y);
-                diff = x - prev;
+                    grad[y][x] = sobelOperator(img, x, y)
+                if x > 1:
+                    grad[y][x-1] = sobelOperator(img, x-1, y)
+                diff = x - prev
 
                 if diff == -1: # the path has moved left
                     if x + 1 < width - 1:
-                        grad[y][x+1] = sobelOperator(img, x+1, y);
-                    if x - 2 > 0 and y - 1 > 0:
-                        grad[y-1][x-2] = sobelOperator(img, x-2, y-1);
+                        grad[y][x+1] = sobelOperator(img, x+1, y)
+                    if x - 1 > 0 and y - 1 > 0:
+                        grad[y-1][x-1] = sobelOperator(img, x-1, y-1)
                 elif diff == 1: # the path has moved right
                     if x - 2 > 0:
-                        grad[y][x-2] = sobelOperator(img, x-2, y);
-                    if x + y < width - 1 and y - 1 > 0:
-                        grad[y-1][x+1] = sobelOperator(img, x+1, y-1);
-            prev = x;
+                        grad[y][x-2] = sobelOperator(img, x-2, y)
+                    if x < width - 1 and y - 1 > 0:
+                        grad[y-1][x] = sobelOperator(img, x, y-1)
+            prev = x
     else:
         # first and last rows compute a different, simpler, gradient
         for y in (0, height-1): # just first and last rows
             for x in range(1, width-1): # first and last columns are excluded
-                grad[y][x] = simpleGradient(img, x, y);
+                grad[y][x] = simpleGradient(img, x, y)
 
         for y in range(1,height-1): # gradient for the rest of rows is based on Sobel operator
             for x in range(1, width-1): # first and last columns are excluded
-                grad[y][x] = sobelOperator(img, x, y);
+                grad[y][x] = sobelOperator(img, x, y)
 
 def paint_seam(height,seam_path,color_matrix,path_color=[0,0,0]):
     """
@@ -97,27 +104,27 @@ def dp_seam_carving(grad,mat):
         mat[y][0]       = infty
         mat[y][width-1] = infty
         for x in range(1,width-1):
-            mat[y][x] = min(mat[y-1][x-1], mat[y-1][x], mat[y-1][x+1]);
-            mat[y][x] += grad[y][x];
+            mat[y][x] = min(mat[y-1][x-1], mat[y-1][x], mat[y-1][x+1])
+            mat[y][x] += grad[y][x]
 
 
-    min_val = infty;
-    min_point = -1;
+    min_val = infty
+    min_point = -1
     for x in range(1,width-1):
         if mat[height-1][x] < min_val:
-            min_val = mat[height-1][x];
-            min_point = x;
+            min_val = mat[height-1][x]
+            min_point = x
 
     # retrieve the best path from min_point
-    path = [min_point];
+    path = [min_point]
     for y in range(height-2, -1, -1):
-        min_point = -1;
-        min_val = mat[y+1][path[-1]];
+        min_point = -1
+        min_val = mat[y+1][path[-1]]
         for x in [i + path[-1] for i in [-1, 0, 1]]:
             if mat[y][x] <= min_val:
-                min_point = x;
-                min_val = mat[y][x];
-        path.append(min_point);
+                min_point = x
+                min_val = mat[y][x]
+        path.append(min_point)
     path.reverse()
 
     return path
