@@ -100,6 +100,11 @@ ENV/
 # mypy
 .mypy_cache/
 
+# Practica 2: imagenes
 *.jpg
 *.jpeg
 *.png
+
+# Practica 3: archivos ejemplo
+*.cnf
+
