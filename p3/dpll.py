@@ -101,6 +101,8 @@ def unit_propagation(clauses):
       if len(c) == 1:
         literals.append(c[0])
         clauses = simplify(clauses, c[0])
+        if isinstance(clauses, bool):
+          return clauses, literals
         change = True
         break
   return clauses, literals
@@ -130,14 +132,22 @@ def dpll(formula):
     return None
 
   (formula, l1) = unit_propagation(formula)
+  if formula is True:
+    return l1
+  elif formula is False:
+    return None
   (formula, l2) = pure_literal_elimination(formula)
+  if formula is True:
+    return l1 + l2
+  elif formula is False:
+    return None
 
   literal = choose_literal(formula)
-  positive = backtracking(simplify(formula, literal))
+  positive = dpll(simplify(formula, literal))
   if positive is not None:
     positive.append(literal)
     return positive + l1 + l2
-  negative = backtracking(simplify(formula, -literal))
+  negative = dpll(simplify(formula, -literal))
   if negative is not None:
     negative.append(-literal)
     return negative + l1 + l2
