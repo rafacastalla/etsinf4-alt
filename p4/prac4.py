@@ -1,4 +1,11 @@
+# -*- coding: utf-8 -*-
 import numpy as np
+
+'''
+Nombre: Carlos S. Galindo Jiménez
+Nombre: José Antonio Pérez
+Fecha: 17/11/2017
+'''
 
 def create_graph(N,maxvalue=1000):
   G = np.random.randint(maxvalue, size=(N, N))
