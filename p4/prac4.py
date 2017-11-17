@@ -8,20 +8,48 @@ def create_graph(N,maxvalue=1000):
 
 def process_graph(G):
   # EJERCICIO 2
-  pass
+  N = G.shape[0]
+  for x in range(0, N-1):
+    for y in range(x+1, N):
+      if (G[x, y] < G[y, x]):
+        G[x, y] -= G[y, x]
+        G[y, x] = 0
+      else:
+        G[y, x] -= G[x, y]
+        G[x, y] = 0
 
 def generate_random_ordering(G):
   # let's assume that G is a square Numpy matrix of integers
   N = G.shape[0]
   return np.random.permutation(N)
 
-def generate_greedy_ordering(G):
+def generate_greedy_ordering(G, infty = 1e9):
   # let's assume that G is a square Numpy matrix of integers
   N = G.shape[0]
   # EJERCICIO 1
-  # REEMPLAZAR:
-  return np.random.permutation(N)
-  
+  res = []
+  remaining = [x for x in range(0,N)]
+  for v in range(0, N):
+    best_score  = -infty
+    best_vertex = -1
+    best_vindex = -1
+    for index, i in enumerate(remaining):
+      # Edges from a previous vertex to v        POSITIVE
+      score  = sum(G[x, i] for x in res)
+      # Edges from v to a next vertex            POSITIVE
+      score += sum(G[i, x] for x in remaining)
+      # Edges from v to a previous vertex        NEGATIVE
+      score -= sum(G[i, x] for x in res)
+      # Edges from a next vertex to v            NEGATIVE
+      score -= sum(G[x, i] for x in remaining)
+      if (score > best_score):
+        best_score = score
+        best_vertex = i
+        best_vindex = index
+    remaining.pop(best_vindex)
+    res.append(best_vertex)
+  return res
+
 def evaluate(G,ordering):
   # assume that G.shape is of type (N,N) and ordering.shape is of type
   # (N) and is a permutation of values 0,...,N-1
@@ -40,7 +68,7 @@ def show_evaluate(G,ordering):
         ") = ",vpos, "-", vneg, "=", resul)
   return resul
 
-  
+
 # si pruebas con este grafo:
 G= np.asarray([[0, 8, 3, 2, 9],
                [3, 0, 3, 8, 2],
@@ -58,8 +86,8 @@ G= np.asarray([[0, 8, 3, 2, 9],
 # con valor 10
 
 # este trozo prueba ejemplos aleatorios:
-N = 30
-G = create_graph(N,100)
+#N = 30
+#G = create_graph(N,100)
 #print("G=",G)
 random_ordering = generate_random_ordering(G)
 greedy_ordering = generate_greedy_ordering(G)
