@@ -18,7 +18,7 @@ def process_graph(G):
   N = G.shape[0]
   for x in range(0, N-1):
     for y in range(x+1, N):
-      if (G[x, y] < G[y, x]):
+      if (G[x, y] > G[y, x]):
         G[x, y] -= G[y, x]
         G[y, x] = 0
       else:
@@ -35,26 +35,26 @@ def generate_greedy_ordering(G, infty = 1e9):
   N = G.shape[0]
   # EJERCICIO 1
   res = []
-  remaining = [x for x in range(0,N)]
-  for v in range(0, N):
-    best_score  = -infty
-    best_vertex = -1
-    best_vindex = -1
-    for index, i in enumerate(remaining):
-      # Edges from a previous vertex to v        POSITIVE
-      score  = sum(G[x, i] for x in res)
-      # Edges from v to a next vertex            POSITIVE
-      score += sum(G[i, x] for x in remaining)
-      # Edges from v to a previous vertex        NEGATIVE
-      score -= sum(G[i, x] for x in res)
-      # Edges from a next vertex to v            NEGATIVE
-      score -= sum(G[x, i] for x in remaining)
-      if (score > best_score):
-        best_score = score
-        best_vertex = i
-        best_vindex = index
-    remaining.pop(best_vindex)
-    res.append(best_vertex)
+  # Compute initial score (if the vertex was first) for all vertices
+  remaining = []
+  for i in range(N):
+    score = sum(G[i, x] for x in range(N)) - sum(G[x, i] for x in range(N))
+    remaining.append((score, i))
+
+  # Add vertices to res, modifying the score of the remaining ones
+  while len(res) < N:
+    remaining = sorted(remaining, reverse=True)
+    _, v = remaining.pop(0)
+    res.append(v)
+    for i, (score, rv) in enumerate(remaining):
+      # Ahora que el vertice ha pasado delante de estos
+      # Tenemos que quitar del score la cantidad que supone el orden rv, v
+      # Y añadir la cantidad que supone el orden v, rv
+      # Como estas cantidades son la misma pero con distinto signo, basta con sumar
+      # 2 * cantidad por orden v, rv
+      score = score + 2 * (G[v, rv] - G[rv, v])
+      remaining[i] = (score, rv)
+# TODO fix
   return res
 
 def evaluate(G,ordering):
@@ -93,11 +93,11 @@ G= np.asarray([[0, 8, 3, 2, 9],
 # con valor 10
 
 # este trozo prueba ejemplos aleatorios:
-#N = 30
-#G = create_graph(N,100)
+N = 30
+G = create_graph(N,100)
 #print("G=",G)
 random_ordering = generate_random_ordering(G)
 greedy_ordering = generate_greedy_ordering(G)
-print("random",evaluate(G,random_ordering))
-print("greedy",evaluate(G,greedy_ordering))
+print("random",evaluate(G,random_ordering),random_ordering)
+print("greedy",evaluate(G,greedy_ordering),greedy_ordering)
 
