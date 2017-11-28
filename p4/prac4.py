@@ -54,7 +54,6 @@ def generate_greedy_ordering(G, infty = 1e9):
       # 2 * cantidad por orden v, rv
       score = score + 2 * (G[v, rv] - G[rv, v])
       remaining[i] = (score, rv)
-# TODO fix
   return res
 
 def evaluate(G,ordering):
