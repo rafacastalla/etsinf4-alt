@@ -31,7 +31,7 @@ def show_evaluate(G,ordering):
   vneg = sum(negativos)
   resul = vpos-vneg
   print("(" + ",".join(map(str,positivos))+") - (" + ",".join(map(str,negativos))+
-	") = ",vpos, "-", vneg, "=", resul)
+    ") = ",vpos, "-", vneg, "=", resul)
   return resul
 
 def generate_greedy_ordering(G):
@@ -66,18 +66,23 @@ def BranchAndBound(G):
   def optimistic(s):
     # s es una lista de vertices entre 0 y N-1
     opt = 0
-    # COMPLETAR:
-    # sumamos la parte conocida:
-    # en primer lugar, las aristas entre elementos conocidos:
-    # luego la suma entre elementos conocidos y desconocidos:
-    # finalmente sumamos una estimación de la parte desconocida:   
+    # Vertices no colocados en s
+    rest = [i for i in range(N) if i not in s]
+    # Aristas de vertices colocados a desconocidos
+    opt += sum(G[i,j] for i in s for j in rest)
+    opt -= sum(G[j,i] for i in s for j in rest)
+    # Aristas entre vertices colocados
+    opt += sum(G[i,j] for x,i in enumerate(s) for y,j in enumerate(s) if x < y)
+    opt -= sum(G[j,i] for x,i in enumerate(s) for y,j in enumerate(s) if x < y)
+    # Estimacion aristas entre vertices desconocidos (suma de todos sus pesos)
+    opt += sum(G[i,j] + G[j,i] for i in rest for j in rest)
     return opt
 
   def branch(s):
     return (s+[i] for i in range(N) if i not in s)
 
   def is_complete(s):
-    # COMPLETAR
+    return len(s) == N
 
   A = [] # empty priority queue
   x = generate_greedy_ordering(G)
@@ -97,26 +102,30 @@ def BranchAndBound(G):
     score_s, s = heapq.heappop(A)
     score_s = -score_s # ahora ya no está negado
     print("Iter. %04d |A|=%05d max|A|=%05d fx=%04d score_s=%04d" % \
-          (iter,lenA,maxA,fx,score_s))
+      (iter,lenA,maxA,fx,score_s))
     for child in branch(s):
+      fchild = optimistic(child)
       if is_complete(child): # si es terminal
         # seguro que es factible
         # falta ver si mejora la mejor solucion en curso
         # COMPLETAR
+        if fchild > fx:
+          x = child
+          fx = fchild
       else: # no es terminal
         # lo metemos en el cjt de estados activos si supera
         # la poda por cota optimista:
         # COMPLETAR
-
+        if fchild > fx:
+          heapq.heappush(A,(-fchild, child))
   return x,fx
- 
+
 if __name__ == "__main__":
     N = 8
     G = create_graph(N,5)
     print("G=",G)
     x,fx = BranchAndBound(G)
     greedy_ordering = generate_greedy_ordering(G)
-    print("greedy ordering", greedy_ordering1,evaluate(G,greedy_ordering1))
+    print("greedy ordering", greedy_ordering,evaluate(G,greedy_ordering))
     print("exacto",x,fx,evaluate(G,x))
-
 
