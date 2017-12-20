@@ -2,6 +2,12 @@ import numpy as np
 import heapq # a priority queue
 import math
 
+'''
+Nombre: Carlos S. Galindo Jiménez
+Nombre: José Antonio Pérez
+Fecha: 20/12/2017
+'''
+
 def create_graph(N,maxvalue=1000):
   G = np.random.randint(maxvalue, size=(N, N))
   for i in range(N):
